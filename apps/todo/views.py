@@ -108,7 +108,7 @@ class TasksView(View):
             result.append(model_to_dict(task))
         return JsonResponse(result, safe=False)
     
-    def post(self,request: HttpRequest,user_id: int, todo_id: int):
+    def post(self,request: HttpRequest, todo_id: int):
         header = request.headers
         token=header["Authorization"][6:]
         username,password=b64decode(token).decode().split(":")
