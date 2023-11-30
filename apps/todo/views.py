@@ -4,17 +4,20 @@ from django.forms import model_to_dict
 from .models import Todo, Task
 from django.contrib.auth.models import User
 import json
+from base64 import b64decode
+from django.contrib.auth import authenticate
 
 
 class TodosView(View):
 
-    def get(self, request: HttpRequest, user_id: int) -> HttpRequest:
-        try:
-            user = User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            return JsonResponse({'error': 'user not found.'})
+    def get(self, request: HttpRequest):
+        header = request.headers
+        token=header["Authorization"][6:]
+        username,password=b64decode(token).decode().split(":")
+        user=authenticate(username=username,password=password)
+        if user is None:
+            return JsonResponse({'error':'anauthorized'},status=401)
         todos = Todo.objects.filter(user=user)
-
         result = []
         for todo in todos:
             result.append(model_to_dict(todo))
@@ -22,10 +25,12 @@ class TodosView(View):
         return JsonResponse(result, safe=False)
     
     def post(self,request: HttpRequest, user_id: int):
-        try:
-            user = User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            return JsonResponse({'error': 'user not found.'})
+        header = request.headers
+        token=header["Authorization"][6:]
+        username,password=b64decode(token).decode().split(":")
+        user=authenticate(username=username,password=password)
+        if user is None:
+            return JsonResponse({'error':'anauthorized'},status=401)
         data= json.loads(request.body.decode())
         todo = Todo.objects.create(
             user=user,
@@ -37,11 +42,13 @@ class TodosView(View):
     
 class TodosItemView(View):
 
-    def get(self, request: HttpRequest, user_id: int, todo_id:int):
-        try:
-            user = User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            return JsonResponse({'error': 'user not found.'})
+    def get(self, request: HttpRequest, todo_id:int):
+        header = request.headers
+        token=header["Authorization"][6:]
+        username,password=b64decode(token).decode().split(":")
+        user=authenticate(username=username,password=password)
+        if user is None:
+            return JsonResponse({'error':'anauthorized'},status=401)
         try:
             todo = Todo.objects.get(id=todo_id,user=user)
         except User.DoesNotExist:
@@ -49,11 +56,13 @@ class TodosItemView(View):
         result=model_to_dict(todo)
         return JsonResponse(result, safe=False)
     
-    def put(self, request: HttpRequest, user_id: int, todo_id:int):
-        try:
-            user = User.objects.get(id=user_id,user=user)
-        except User.DoesNotExist:
-            return JsonResponse({'error': 'user not found.'})
+    def put(self, request: HttpRequest, todo_id:int):
+        header = request.headers
+        token=header["Authorization"][6:]
+        username,password=b64decode(token).decode().split(":")
+        user=authenticate(username=username,password=password)
+        if user is None:
+            return JsonResponse({'error':'anauthorized'},status=401)
         try:
             todo = Todo.objects.get(id=todo_id,user=user)
         except User.DoesNotExist:
@@ -65,11 +74,13 @@ class TodosItemView(View):
         result=model_to_dict(todo)
         return JsonResponse(result)
     
-    def delete(self, request: HttpRequest, user_id: int, todo_id:int):
-        try:
-            user = User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            return JsonResponse({'error': 'user not found.'})
+    def delete(self, request: HttpRequest, todo_id:int):
+        header = request.headers
+        token=header["Authorization"][6:]
+        username,password=b64decode(token).decode().split(":")
+        user=authenticate(username=username,password=password)
+        if user is None:
+            return JsonResponse({'error':'anauthorized'},status=401)
         try:
             todo = Todo.objects.get(id=todo_id,user=user)
         except User.DoesNotExist:
@@ -79,11 +90,13 @@ class TodosItemView(View):
         
 
 class TasksView(View):
-    def get(self, request: HttpRequest, user_id: int, todo_id: int) -> HttpRequest:
-        try:
-            user = User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            return JsonResponse({'error': 'user not found.'})
+    def get(self, request: HttpRequest, todo_id: int) -> HttpRequest:
+        header = request.headers
+        token=header["Authorization"][6:]
+        username,password=b64decode(token).decode().split(":")
+        user=authenticate(username=username,password=password)
+        if user is None:
+            return JsonResponse({'error':'anauthorized'},status=401)
         try:
             todo = Todo.objects.get(id=todo_id,user=user)
         except User.DoesNotExist:
@@ -96,10 +109,12 @@ class TasksView(View):
         return JsonResponse(result, safe=False)
     
     def post(self,request: HttpRequest,user_id: int, todo_id: int):
-        try:
-            user = User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            return JsonResponse({'error': 'user not found.'})
+        header = request.headers
+        token=header["Authorization"][6:]
+        username,password=b64decode(token).decode().split(":")
+        user=authenticate(username=username,password=password)
+        if user is None:
+            return JsonResponse({'error':'anauthorized'},status=401)
         try:
             todo = Todo.objects.get(id=todo_id,user=user)
         except User.DoesNotExist:
@@ -112,17 +127,19 @@ class TasksView(View):
             status=data.get('status'),
             due_date=data.get('due_date'),
         )
-        result=model_to_dict(todo)
+        result=model_to_dict(task)
         return JsonResponse(result, status=201)
     
 
 class TasksItemView(View):
 
-    def get(self, request: HttpRequest, user_id: int, todo_id: int, task_id: int) -> HttpRequest:
-        try:
-            user = User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            return JsonResponse({'error': 'user not found.'})
+    def get(self, request: HttpRequest, todo_id: int, task_id: int) -> HttpRequest:
+        header = request.headers
+        token=header["Authorization"][6:]
+        username,password=b64decode(token).decode().split(":")
+        user=authenticate(username=username,password=password)
+        if user is None:
+            return JsonResponse({'error':'anauthorized'},status=401)
         try:
             todo = Todo.objects.get(id=todo_id,user=user)
         except Todo.DoesNotExist:
@@ -134,11 +151,13 @@ class TasksItemView(View):
         result=model_to_dict(task)
         return JsonResponse(result, safe=False)
     
-    def put(self, request: HttpRequest, user_id: int, todo_id:int, task_id:int):
-        try:
-            user = User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            return JsonResponse({'error': 'user not found.'})
+    def put(self, request: HttpRequest, todo_id:int, task_id:int):
+        header = request.headers
+        token=header["Authorization"][6:]
+        username,password=b64decode(token).decode().split(":")
+        user=authenticate(username=username,password=password)
+        if user is None:
+            return JsonResponse({'error':'anauthorized'},status=401)
         todos = Todo.objects.filter(user=user)
         try:
             todo = Todo.objects.get(id=todo_id,user=user)
@@ -158,11 +177,13 @@ class TasksItemView(View):
         result=model_to_dict(todo)
         return JsonResponse(result)
     
-    def delete(self, request: HttpRequest, user_id: int, todo_id:int,task_id:int):
-        try:
-            user = User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            return JsonResponse({'error': 'user not found.'})
+    def delete(self, request: HttpRequest, todo_id:int,task_id:int):
+        header = request.headers
+        token=header["Authorization"][6:]
+        username,password=b64decode(token).decode().split(":")
+        user=authenticate(username=username,password=password)
+        if user is None:
+            return JsonResponse({'error':'anauthorized'},status=401)
         todos = Todo.objects.filter(user=user)
         try:
             todo = Todo.objects.get(id=todo_id)

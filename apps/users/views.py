@@ -3,6 +3,8 @@ from django.views import View
 from django.forms import model_to_dict
 from .models import User
 import json
+from base64 import b64decode
+from django.contrib.auth import authenticate
 
 
 class UsersView(View):
@@ -24,7 +26,21 @@ class UsersView(View):
 
 
 class UsersItemView(View):
-    def get(sef, request: HttpRequest, pk:int):
-        user=User.objects.get(id=pk)
+    def get(sef, request: HttpRequest):
+        header = request.headers
+        token=header["Authorization"][6:]
+        username,password=b64decode(token).decode().split(":")
+        user=authenticate(username=username,password=password)
+        if user is None:
+            return JsonResponse({'error':'anauthorized'},status=401)
         result=model_to_dict(user)
         return JsonResponse(result, safe=False)
+    def put(self, request:HttpRequest):
+        header=request.headers
+        token=header["Authorization"][6:]
+        username,password=b64decode(token).decode().split(":")
+        user=authenticate(username=username,password=password)
+        if user is None:
+            return JsonResponse({'error':'anauthorized'},status=401)
+        user.delete()
+        return JsonResponse({"message":"delete"})
