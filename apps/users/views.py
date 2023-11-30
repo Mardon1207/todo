@@ -1,7 +1,7 @@
 from django.http import HttpRequest, JsonResponse
 from django.views import View
 from django.forms import model_to_dict
-from .models import User
+from django.contrib.auth.models import User
 import json
 from base64 import b64decode
 from django.contrib.auth import authenticate
@@ -16,13 +16,16 @@ class UsersView(View):
         return JsonResponse(result, safe=False)
     
     def post(self, request: HttpRequest) -> HttpRequest:
-        data=json.loads(request.body.decode())
-        user=User.objects.create(
-            user=user,
-            pricture=data.get('pricture'),
-            phone = data.get('phone'),
-            date_of_birth = data.get("date_of_birth")
-        )
+        data = json.loads(request.body.decode())
+
+        try:
+            user = User(username=data['username'])
+            user.set_password(raw_password=data['password'])
+            user.save()
+            
+            return JsonResponse({"message": "created."}, status=201)
+        except :
+            return JsonResponse({'message': 'error'}, status=404)
 
 
 class UsersItemView(View):
